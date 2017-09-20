@@ -3,7 +3,10 @@ defmodule NewGenStatem.HumanStateMachine do
 
     @name :human_statem
 
-    # Client API
+    def neutral_message, do: "Hello"
+    def happy_message, do: "Oh Hi mark! What a funny story!"
+    def angry_message, do: "Everybody betrayed me I'm fedup with this world!"
+    
 
     def start_link do
         :gen_statem.start_link({:local, @name}, __MODULE__, [], [])
@@ -17,6 +20,7 @@ defmodule NewGenStatem.HumanStateMachine do
         :state_functions
     end
 
+
     def say_hello do
         :gen_statem.call(@name, :hello)
     end
@@ -29,6 +33,10 @@ defmodule NewGenStatem.HumanStateMachine do
         :gen_statem.call(@name, :insult)
     end
 
+    def stop do
+        :gen_statem.stop(@name)
+    end
+
     def terminate(_reason, state, data) do
         IO.puts "Terminated with state: #{state}"
         IO.puts "Data:"
@@ -37,74 +45,58 @@ defmodule NewGenStatem.HumanStateMachine do
     end
 
     def neutral({:call, from}, :hello, data) do
-        {:keep_state, data, [{:reply, from, "Hello"}]}
+        {:keep_state, data, [{:reply, from, neutral_message()}]}
     end
 
     def neutral({:call, from}, :praise, data) do
-        IO.puts "Praisin"
-        {:next_state, :happy, %{ data | praises: data.praises + 1 }, [{:reply, from, :ok}]}
+        {:next_state, :happy, increment_praises(data), [{:reply, from, :ok}]}
     end
 
     def neutral({:call, from}, :insult, data) do
-        {:next_state, :angry, %{ data | insults: data.insults + 1 }, [{:reply, from, :ok}]}
+        {:next_state, :angry, increment_insults(data), [{:reply, from, :ok}]}
     end
 
 
     def happy({:call, from}, :hello, data) do
-        {:keep_state, data, [{:reply, from, "Oh Hi mark! What a funny story!"}]}
+        {:keep_state, data, [{:reply, from, happy_message()}]}
     end
 
     def happy({:call, from}, :praise, data) do
-        {:keep_state, %{ data | praises: data.praises + 1 }, [{:reply, from, :ok}]}
+        {:keep_state, increment_praises(data), [{:reply, from, :ok}]}
     end
 
     def happy({:call, from}, :insult, data) do
-        data = %{ data | insults: data.insults + 1 }
-        if (data.insults == data.praises) do
-            {:next_state, :neutral , data, [{:reply, from, :ok}]}
-        else 
-            {:keep_state, data, [{:reply, from, :ok}]}
-        end
+        data = increment_insults(data)
+        handle_neutral_transition(from, data)
     end
 
     def angry({:call, from}, :hello, data) do
-        {:keep_state, data, [{:reply, from, "Everybody betrayed me I'm fedup with this world!"}]}
+        {:keep_state, data, [{:reply, from, angry_message()}]}
     end
 
     def angry({:call, from}, :praise, data) do
-        data = %{ data | praises: data.praises + 1 }
-        if (data.insults == data.praises) do
-            {:next_state, :neutral , data, [{:reply, from, :ok}]}
-        else 
-            {:keep_state, data, [{:reply, from, :ok}]}
-        end
+        data = increment_praises(data)
+        handle_neutral_transition(from, data)
     end
 
     def angry({:call, from}, :insult, data) do
-        {:keep_state, %{ data | insults: data.insults + 1 }, [{:reply, from, :ok}]}
+        {:keep_state, increment_insults(data), [{:reply, from, :ok}]}
     end
 
-#     def push do
-#         :gen_statem.call(@name, :push)
-#     end
+    defp handle_neutral_transition(from, data = %{insults: insults, praises: praises}) 
+        when insults == praises do
+        {:next_state, :neutral , data, [{:reply, from, :ok}]}
+    end
 
-#     def get_count do
-#         :gen_statem.call(@name, :get_count)
-#     end
+    defp handle_neutral_transition from, data do
+        {:keep_state, data, [{:reply, from, :ok}]}
+    end
 
-#     def stop do
-#         :gen_statem.stop(@name)
-#     end
+    defp increment_insults data do
+        %{ data | insults: data.insults + 1 }
+    end
 
-
-#     # State functions
-
-#   def off({:call, from}, :push, data), do: {:next_state, :on, data + 1, [{:reply, from, :on}]}
-#   def off(event, content, data), do: handle_event(event, content, data)
-
-#   def on({:call, from}, :push, data), do: {:next_state, :off, data + 1, [{:reply, from, :off}]}
-#   def on(event, content, data), do: handle_event(event, content, data)
-
-#   def handle_event({:call, from}, :get_count, data), do: {:keep_state, data, [{:reply, from, data}]}
-#   def handle_event(_event, _content, data), do: {:keep_state, data}
+    defp increment_praises data do
+        %{ data | praises: data.praises + 1 }
+    end
 end
