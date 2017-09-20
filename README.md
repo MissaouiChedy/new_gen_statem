@@ -1,6 +1,6 @@
 # NewGenStatem
 
-**TODO: Add description**
+A sample elixir example that demonstrates the usage of the new gen_statem behavior
 
 ## Installation
 
