@@ -6,7 +6,7 @@ The `lib/new_gen_statem/human_state_machine.ex` file contains the `HumanStateMac
 
 ![human state machine](https://github.com/MissaouiChedy/new_gen_statem/raw/master/human_state_machine.PNG)
 
-More details soon.
+More details [here](http://blog.techdominator.com/article/implementing-state-machine-elixir.html).
 
 
 
