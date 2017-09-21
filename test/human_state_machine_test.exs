@@ -2,10 +2,9 @@ defmodule NewGenStatemTest.HumanStateMachineTest do
   use ExUnit.Case
   
   setup do
-    NewGenStatem.HumanStateMachine.start_link
-    # on_exit fn ->
-    #   NewGenStatem.HumanStateMachine.stop
-    # end
+    on_exit fn ->
+       NewGenStatem.HumanStateMachine.reset
+    end
     :ok
   end
   

@@ -1,8 +1,9 @@
 defmodule NewGenStatem.HumanStateMachine do
+    
     @behaviour :gen_statem
 
     @name :human_statem
-
+    
     def neutral_message, do: "Hello"
     def happy_message, do: "Oh Hi mark! What a funny story!"
     def angry_message, do: "Everybody betrayed me I'm fedup with this world!"
@@ -20,6 +21,9 @@ defmodule NewGenStatem.HumanStateMachine do
         :state_functions
     end
 
+    def reset do
+        :gen_statem.call(@name, :reset)
+    end
 
     def say_hello do
         :gen_statem.call(@name, :hello)
@@ -56,6 +60,9 @@ defmodule NewGenStatem.HumanStateMachine do
         {:next_state, :angry, increment_insults(data), [{:reply, from, :ok}]}
     end
 
+    def neutral({:call, from}, :reset, _data) do
+        {:next_state, :neutral, %{insults: 0, praises: 0 }, [{:reply, from, :ok}]}
+    end
 
     def happy({:call, from}, :hello, data) do
         {:keep_state, data, [{:reply, from, happy_message()}]}
@@ -70,6 +77,10 @@ defmodule NewGenStatem.HumanStateMachine do
         handle_neutral_transition(from, data)
     end
 
+    def happy({:call, from}, :reset, _data) do
+        {:next_state, :neutral, %{insults: 0, praises: 0 }, [{:reply, from, :ok}]}
+    end
+
     def angry({:call, from}, :hello, data) do
         {:keep_state, data, [{:reply, from, angry_message()}]}
     end
@@ -81,6 +92,10 @@ defmodule NewGenStatem.HumanStateMachine do
 
     def angry({:call, from}, :insult, data) do
         {:keep_state, increment_insults(data), [{:reply, from, :ok}]}
+    end
+
+    def angry({:call, from}, :reset, _data) do
+        {:next_state, :neutral, %{insults: 0, praises: 0 }, [{:reply, from, :ok}]}
     end
 
     defp handle_neutral_transition(from, data = %{insults: insults, praises: praises}) 
