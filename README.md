@@ -1,21 +1,11 @@
-# NewGenStatem
+# New Gen_Statem
 
-A sample elixir example that demonstrates the usage of the new gen_statem behavior
+A simple Elixir example application that demonstrates the usage of the new [gen_statem](http://erlang.org/doc/man/gen_statem.html) OTP behavior.
 
-## Installation
+The `lib/new_gen_statem/human_state_machine.ex` file contains the `HumanStateMachine` module that implements a state machine representing a human's mood:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `new_gen_statem` to your list of dependencies in `mix.exs`:
 
-```elixir
-def deps do
-  [
-    {:new_gen_statem, "~> 0.1.0"}
-  ]
-end
-```
+More details soon.
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/new_gen_statem](https://hexdocs.pm/new_gen_statem).
+
 
