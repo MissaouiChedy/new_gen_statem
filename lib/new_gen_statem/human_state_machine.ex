@@ -30,11 +30,11 @@ defmodule NewGenStatem.HumanStateMachine do
     end
 
     def praise do
-        :gen_statem.call(@name, :praise)
+        :gen_statem.cast(@name, :praise)
     end
 
     def insult do
-        :gen_statem.call(@name, :insult)
+        :gen_statem.cast(@name, :insult)
     end
 
     def stop do
@@ -52,12 +52,12 @@ defmodule NewGenStatem.HumanStateMachine do
         {:keep_state, data, [{:reply, from, neutral_message()}]}
     end
 
-    def neutral({:call, from}, :praise, data) do
-        {:next_state, :happy, increment_praises(data), [{:reply, from, :ok}]}
+    def neutral(:cast, :praise, data) do
+        {:next_state, :happy, increment_praises(data)}
     end
 
-    def neutral({:call, from}, :insult, data) do
-        {:next_state, :angry, increment_insults(data), [{:reply, from, :ok}]}
+    def neutral(:cast, :insult, data) do
+        {:next_state, :angry, increment_insults(data)}
     end
 
     def neutral({:call, from}, :reset, _data) do
@@ -68,13 +68,14 @@ defmodule NewGenStatem.HumanStateMachine do
         {:keep_state, data, [{:reply, from, happy_message()}]}
     end
 
-    def happy({:call, from}, :praise, data) do
-        {:keep_state, increment_praises(data), [{:reply, from, :ok}]}
+    def happy(:cast, :praise, data) do
+        {:keep_state, increment_praises(data)}
     end
 
-    def happy({:call, from}, :insult, data) do
-        data = increment_insults(data)
-        handle_neutral_transition(from, data)
+    def happy(:cast, :insult, data) do
+        data
+        |> increment_insults()
+        |> handle_neutral_transition()
     end
 
     def happy({:call, from}, :reset, _data) do
@@ -85,26 +86,27 @@ defmodule NewGenStatem.HumanStateMachine do
         {:keep_state, data, [{:reply, from, angry_message()}]}
     end
 
-    def angry({:call, from}, :praise, data) do
-        data = increment_praises(data)
-        handle_neutral_transition(from, data)
+    def angry(:cast, :praise, data) do
+        data
+        |> increment_praises()
+        |> handle_neutral_transition()
     end
 
-    def angry({:call, from}, :insult, data) do
-        {:keep_state, increment_insults(data), [{:reply, from, :ok}]}
+    def angry(:cast, :insult, data) do
+        {:keep_state, increment_insults(data)}
     end
 
     def angry({:call, from}, :reset, _data) do
         {:next_state, :neutral, %{insults: 0, praises: 0 }, [{:reply, from, :ok}]}
     end
 
-    defp handle_neutral_transition(from, data = %{insults: insults, praises: praises}) 
+    defp handle_neutral_transition(data = %{insults: insults, praises: praises}) 
         when insults == praises do
-        {:next_state, :neutral , data, [{:reply, from, :ok}]}
+        {:next_state, :neutral , data}
     end
 
-    defp handle_neutral_transition from, data do
-        {:keep_state, data, [{:reply, from, :ok}]}
+    defp handle_neutral_transition data do
+        {:keep_state, data}
     end
 
     defp increment_insults data do
